@@ -4,7 +4,7 @@ import random
 
 
 #Fonction pour vérifier si un nombre est premier
-def is_prime(n):
+def prime(n):
     if n <= 1:
         return False
     if n <= 3:
@@ -41,7 +41,7 @@ def generate_prime_candidate(length):
 #fonction pour générer un nombre premier
 def generate_prime_number(length=10):
     p = 4
-    while not is_prime(p):
+    while not prime(p):
         p = generate_prime_candidate(length)
     return p
 
@@ -72,7 +72,10 @@ def gcd(a, b):
         a, b = b, a % b
     return a
 
-#affichage de la clé publique et privée
-public_key, private_key = generate_keypair()
-print("Public Key: ", public_key)
-print("Private Key: ", private_key)
+
+
+def spawn_key() :
+    public_key, private_key = generate_keypair()
+    return public_key, private_key
+
+
