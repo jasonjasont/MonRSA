@@ -30,7 +30,7 @@ def chiffrement():
     print("Clé publique : ", public_key)
     print("Clé privée : ", private_key)
 
-    message = "Hello, World!"
+   
     encrypted_message = encrypt_message(message, e, n)
     print(f"Message chiffré : {encrypted_message}")
 
