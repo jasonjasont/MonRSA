@@ -30,9 +30,9 @@ def chiffrement():
     print("Clé publique : ", public_key)
     print("Clé privée : ", private_key)
 
-   
+    message = "initialisation"
     encrypted_message = encrypt_message(message, e, n)
     print(f"Message chiffré : {encrypted_message}")
+    
+    return encrypted_message
 
-if __name__ == "__main__":
-    chiffrement()
