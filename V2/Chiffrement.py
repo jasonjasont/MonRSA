@@ -130,18 +130,15 @@ def encrypt_message(message):
     ascii_values = [ord(char) for char in message]
     print(f"Valeurs ASCII : {ascii_values}")
 
-    # Créer des blocs de taille (taille de n - 1)
-    block_size = len(str(n)) - 1
+    # Créer des blocs de taille 3 caractères ASCII, chaque bloc commence et finit par '0'
     blocks = []
-    current_block = ""
-    for value in ascii_values:
-        current_block += str(value).zfill(3)  # Remplir chaque valeur ASCII avec 3 chiffres
-        if len(current_block) >= block_size:
-            blocks.append(current_block[:block_size])
-            current_block = current_block[block_size:]
-
-    if current_block:
-        blocks.append(current_block.ljust(block_size, "0"))  # Compléter avec des zéros
+    for i in range(0, len(ascii_values), 3):
+        block = "0"
+        for j in range(3):
+            if i + j < len(ascii_values):
+                block += str(ascii_values[i + j]).zfill(3)
+        block += "0"
+        blocks.append(block)
     print(f"Blocs à chiffrer : {blocks}")
 
     # Chiffrer chaque bloc
@@ -156,5 +153,4 @@ def encrypt_message(message):
         enc_file.write(encrypted_message)
 
     print("Message chiffré et sauvegardé dans 'encrypted_message.txt'.")
-
 

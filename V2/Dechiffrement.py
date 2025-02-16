@@ -37,6 +37,10 @@ def decrypt_message():
             char_code = int(block[i:i+3])
             if 32 <= char_code <= 126:  # Ignorer les zéros non significatifs et les caractères non imprimables
                 decrypted_message += chr(char_code)
+            elif char_code == 0:  # Ignorer les zéros non significatifs
+                continue
+            else:
+                decrypted_message += '?'  # Remplacer les caractères non imprimables par '?'
     print(f"Message déchiffré intermédiaire : {decrypted_message}")
 
     print("Message déchiffré :", decrypted_message)
