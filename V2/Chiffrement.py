@@ -3,7 +3,6 @@ import math
 import base64
 from math import gcd
 
-
 def is_prime(n):
     """Vérifie si un nombre est premier."""
     if n <= 1:
@@ -12,7 +11,6 @@ def is_prime(n):
         if n % i == 0:
             return False
     return True
-
 
 def generate_large_prime():
     """Génère un grand nombre premier de 10 chiffres."""
@@ -24,7 +22,6 @@ def generate_large_prime():
             return num
         attempts += 1
     raise Exception("Impossible de générer un grand nombre premier après plusieurs tentatives.")
-
 
 def extended_gcd(a, b):
     """Algorithme d'Euclide étendu pour trouver l'inverse modulaire."""
@@ -41,7 +38,6 @@ def mod_inverse(a, m):
     if g != 1:
         raise ValueError("Aucun inverse modulaire trouvé")
     return x % m
-
 
 def generate_keys():
     """Génère une paire de clés RSA."""
@@ -86,18 +82,22 @@ def generate_keys():
     d_hex = hex(d)[2:]
     n_hex = hex(n)[2:]
 
+    # Demander à l'utilisateur le nom des fichiers de clé
+    pub_key_filename = input("Entrez le nom du fichier pour la clé publique (par défaut 'monRSA.pub') : ") or "monRSA.pub"
+    priv_key_filename = input("Entrez le nom du fichier pour la clé privée (par défaut 'monRSA.priv') : ") or "monRSA.priv"
+
     # Sauvegarder les clés dans des fichiers
-    with open("monRSA.pub", "w") as pub_file:
+    with open(pub_key_filename, "w") as pub_file:
         pub_file.write(f"---begin monRSA public key---\n")
         pub_file.write(base64.b64encode(f"0x{n_hex}\n0x{e_hex}".encode()).decode() + "\n")
         pub_file.write(f"---end monRSA key---\n")
-        print("Clé publique sauvegardée dans 'monRSA.pub'")
+        print(f"Clé publique sauvegardée dans '{pub_key_filename}'")
 
-    with open("monRSA.priv", "w") as priv_file:
+    with open(priv_key_filename, "w") as priv_file:
         priv_file.write(f"---begin monRSA private key---\n")
         priv_file.write(base64.b64encode(f"0x{n_hex}\n0x{d_hex}".encode()).decode() + "\n")
         priv_file.write(f"---end monRSA key---\n")
-        print("Clé privée sauvegardée dans 'monRSA.priv'")
+        print(f"Clé privée sauvegardée dans '{priv_key_filename}'")
 
     # Afficher les valeurs pour validation
     print(f"p: {p}")
@@ -110,7 +110,6 @@ def generate_keys():
     print("Clés générées avec succès !")
     print(f"Clé publique : (e={e_hex}, n={n_hex})")
     print(f"Clé privée : (d={d_hex}, n={n_hex})")
-
 
 def encrypt_message(message):
     """Chiffre un message avec la clé publique."""
@@ -153,4 +152,3 @@ def encrypt_message(message):
         enc_file.write(encrypted_message)
 
     print("Message chiffré et sauvegardé dans 'encrypted_message.txt'.")
-
