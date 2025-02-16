@@ -1,13 +1,31 @@
-import SpawnKey
-import Chiffrement
+import sys
+from chiffrement import generate_keys, encrypt_message
+from dechiffrement import decrypt_message
+
 
 def main():
-    SpawnKey.spawn_key()
-    encrypted_message = Chiffrement.chiffrement()
+    if len(sys.argv) < 2:
+        print("Usage :")
+        print("  python main.py generate_keys")
+        print("  python main.py encrypt 'votre message'")
+        print("  python main.py decrypt")
+        sys.exit(1)
 
- # Enregistrement de la clé publique
-    with open('clé_public', 'w') as file:
-        file.write(encrypted_message)
+    command = sys.argv[1]
+
+    if command == "generate_keys":
+        generate_keys()
+    elif command == "encrypt":
+        if len(sys.argv) < 3:
+            print("Erreur : spécifiez un message à chiffrer.")
+            sys.exit(1)
+        message = sys.argv[2]
+        encrypt_message(message)
+    elif command == "decrypt":
+        decrypt_message()
+    else:
+        print("Commande inconnue :", command)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

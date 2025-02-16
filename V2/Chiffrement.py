@@ -1,38 +1,160 @@
-import SpawnKey
+import random
+import math
 import base64
+from math import gcd
 
-def encrypt_block(block, e, n):
-    return pow(block, e, n)
 
-# décimal vers ascii
-def encrypt_message(message, e, n):
+def is_prime(n):
+    """Vérifie si un nombre est premier."""
+    if n <= 1:
+        return False
+    for i in range(2, int(math.sqrt(n)) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+
+def generate_large_prime():
+    """Génère un grand nombre premier de 10 chiffres."""
+    attempts = 0
+    max_attempts = 1000  # Limite le nombre de tentatives pour trouver un nombre premier
+    while attempts < max_attempts:
+        num = random.randint(10**9, 10**10 - 1)
+        if is_prime(num):
+            return num
+        attempts += 1
+    raise Exception("Impossible de générer un grand nombre premier après plusieurs tentatives.")
+
+
+def extended_gcd(a, b):
+    """Algorithme d'Euclide étendu pour trouver l'inverse modulaire."""
+    x0, x1, y0, y1 = 1, 0, 0, 1
+    while b != 0:
+        q, a, b = a // b, b, a % b
+        x0, x1 = x1, x0 - q * x1
+        y0, y1 = y1, y0 - q * y1
+    return a, x0, y0
+
+def mod_inverse(a, m):
+    """Calcule l'inverse modulaire de 'a' modulo 'm'."""
+    g, x, y = extended_gcd(a, m)
+    if g != 1:
+        raise ValueError("Aucun inverse modulaire trouvé")
+    return x % m
+
+
+def generate_keys():
+    """Génère une paire de clés RSA."""
+    print("Génération des clés RSA...")
+    p = generate_large_prime()
+    print(f"Nombre premier p généré : {p}")
+    q = generate_large_prime()
+    print(f"Nombre premier q généré : {q}")
+
+    while p == q:
+        q = generate_large_prime()
+        print(f"Nombre premier q régénéré : {q}")
+
+    n = p * q
+    phi = (p - 1) * (q - 1)
+    print(f"Calcul de n = p * q : {n}")
+    print(f"Calcul de phi = (p - 1) * (q - 1) : {phi}")
+
+    # Utiliser des valeurs couramment utilisées pour e
+    common_es = [3, 5, 17, 257, 65537]
+    e, d = None, None
+
+    for potential_e in common_es:
+        if potential_e < phi and gcd(potential_e, phi) == 1:
+            try:
+                potential_d = mod_inverse(potential_e, phi)
+                if potential_e != potential_d and (potential_e * potential_d) % phi == 1:
+                    e, d = potential_e, potential_d
+                    e_hex = hex(e)[2:]
+                    d_hex = hex(d)[2:]
+                    if len(e_hex) == len(d_hex):  # Vérifier que e et d ont la même longueur
+                        print(f"Valeurs trouvées : e = {e}, d = {d}")
+                        break
+            except ValueError:
+                continue
+
+    if e is None or d is None:
+        raise Exception("Impossible de trouver e et d.")
+
+    # Convertir les clés en hexadécimal
+    e_hex = hex(e)[2:]
+    d_hex = hex(d)[2:]
+    n_hex = hex(n)[2:]
+
+    # Sauvegarder les clés dans des fichiers
+    with open("monRSA.pub", "w") as pub_file:
+        pub_file.write(f"---begin monRSA public key---\n")
+        pub_file.write(base64.b64encode(f"0x{n_hex}\n0x{e_hex}".encode()).decode() + "\n")
+        pub_file.write(f"---end monRSA key---\n")
+        print("Clé publique sauvegardée dans 'monRSA.pub'")
+
+    with open("monRSA.priv", "w") as priv_file:
+        priv_file.write(f"---begin monRSA private key---\n")
+        priv_file.write(base64.b64encode(f"0x{n_hex}\n0x{d_hex}".encode()).decode() + "\n")
+        priv_file.write(f"---end monRSA key---\n")
+        print("Clé privée sauvegardée dans 'monRSA.priv'")
+
+    # Afficher les valeurs pour validation
+    print(f"p: {p}")
+    print(f"q: {q}")
+    print(f"n: {n}")
+    print(f"nPrime: {phi}")
+    print(f"e: {e}")
+    print(f"d: {d}")
+
+    print("Clés générées avec succès !")
+    print(f"Clé publique : (e={e_hex}, n={n_hex})")
+    print(f"Clé privée : (d={d_hex}, n={n_hex})")
+
+
+def encrypt_message(message):
+    """Chiffre un message avec la clé publique."""
+    try:
+        with open("monRSA.pub", "r") as pub_file:
+            pub_file.readline()  # Skip the first line
+            encoded_keys = pub_file.readline().strip()
+            decoded_keys = base64.b64decode(encoded_keys).decode().split("\n")
+            n = int(decoded_keys[0], 16)
+            e = int(decoded_keys[1], 16)
+            print(f"Clé publique lue : n = {n}, e = {e}")
+    except FileNotFoundError:
+        print("Erreur : Fichier de clé publique introuvable. Générer les clés d'abord.")
+        return
+
+    # Convertir le message en ASCII
+    ascii_values = [ord(char) for char in message]
+    print(f"Valeurs ASCII : {ascii_values}")
+
+    # Créer des blocs de taille (taille de n - 1)
     block_size = len(str(n)) - 1
-    ascii_message = int(''.join(f'{ord(c):03}' for c in message))
     blocks = []
+    current_block = ""
+    for value in ascii_values:
+        current_block += str(value).zfill(3)  # Remplir chaque valeur ASCII avec 3 chiffres
+        if len(current_block) >= block_size:
+            blocks.append(current_block[:block_size])
+            current_block = current_block[block_size:]
 
-    while ascii_message > 0:
-        blocks.append(ascii_message % (10 ** block_size))
-        ascii_message //= 10 ** block_size
+    if current_block:
+        blocks.append(current_block.ljust(block_size, "0"))  # Compléter avec des zéros
+    print(f"Blocs à chiffrer : {blocks}")
 
-    blocks.reverse()
-    encrypted_blocks = [encrypt_block(block, e, n) for block in blocks]
-    encrypted_message = ''.join(f'{block:0{block_size}d}' for block in encrypted_blocks)
-    
-    ascii_encoded = ''.join(chr(int(encrypted_message[i:i+3])) for i in range(0, len(encrypted_message), 3))
-    base64_encoded = base64.b64encode(ascii_encoded.encode()).decode()
-    
-    return base64_encoded
+    # Chiffrer chaque bloc
+    encrypted_blocks = [str(pow(int(block), e, n)) for block in blocks]
+    print(f"Blocs chiffrés : {encrypted_blocks}")
 
-#Récupération des clef et chiffrement de la clé publique
-def chiffrement():
-    public_key, private_key = SpawnKey.spawn_key()
-    e, n = public_key
-    print("Clé publique : ", public_key)
-    print("Clé privée : ", private_key)
+    # Convertir les blocs chiffrés en Base64
+    encrypted_message = base64.b64encode(" ".join(encrypted_blocks).encode()).decode()
+    print(f"Message chiffré en Base64 : {encrypted_message}")
 
-    message = "initialisation"
-    encrypted_message = encrypt_message(message, e, n)
-    print(f"Message chiffré : {encrypted_message}")
-    
-    return encrypted_message
+    with open("encrypted_message.txt", "w") as enc_file:
+        enc_file.write(encrypted_message)
+
+    print("Message chiffré et sauvegardé dans 'encrypted_message.txt'.")
+
 
