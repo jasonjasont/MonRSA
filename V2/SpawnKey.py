@@ -64,7 +64,7 @@ def generate_keypair(length=10):
 
     d = mod_inverse(e, phi)
     
-    return ((e, n), (d, n))
+    return ((n, d), (n, e))
 
 #fonction pour trouver le pgcd
 def gcd(a, b):
